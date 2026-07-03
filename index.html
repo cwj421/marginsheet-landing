@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>마진시트 — 정산내역 붙여넣기만 하면, 실마진·부가세가 끝.</title>
+<meta name="description" content="수수료율이 바뀌어도, 정산 파일 포맷이 바뀌어도 다시 안 만들어도 되는 셀러 정산·실마진 구글시트.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+body{margin:0;font-family:'Pretendard Variable',Pretendard,-apple-system,'Noto Sans KR',sans-serif;background:#fff;color:#191f28;-webkit-font-smoothing:antialiased}
+.page{--accent:#188038;--accent-soft:#f0faf4;--sub:#4e5968;--line:#e8ebed}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+.fx{display:flex}.ac{align-items:center}.jb{justify-content:space-between}.jc{justify-content:center}
+.tc{text-align:center}.mt16{margin-top:16px}.gap12{gap:12px}.fw7{font-weight:700}.fw8{font-weight:800}
+.sub{color:#4e5968}
+.acc{color:var(--accent)}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:56px;padding:0 28px;border-radius:14px;font-size:17px;font-weight:700;text-decoration:none;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-ghost{background:var(--accent-soft);color:var(--accent)}
+.sec{padding:96px 0}
+.sec-title{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-0.03em;line-height:1.25;margin:0}
+.sec-sub{font-size:18px;color:#4e5968;margin:14px 0 0;line-height:1.6}
+.eyebrow{font-size:15px;font-weight:800;color:var(--accent);letter-spacing:.02em;margin:0 0 10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.hero-h1{font-size:clamp(38px,6vw,66px);font-weight:800;letter-spacing:-0.04em;line-height:1.18;margin:0}
+.hero-sub{font-size:clamp(17px,2vw,21px);color:#4e5968;line-height:1.65;margin:22px 0 0}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent);font-size:14px;font-weight:700;padding:8px 14px;border-radius:999px}
+.mock{border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(25,31,40,.08)}
+.mock-bar{display:flex;align-items:center;gap:10px;background:#f7f8fa;border-bottom:1px solid var(--line);padding:12px 18px;font-size:13px;font-weight:600;color:#6b7684}
+.dot{width:10px;height:10px;border-radius:50%;background:#dde1e6}
+.mrow{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;padding:13px 20px;border-bottom:1px solid #f2f4f6;font-size:14px;align-items:center}
+.mrow-h{background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px}
+.mnum{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.loss{color:#e5484d}
+.gain{color:var(--accent)}
+.pain-num{font-size:15px;font-weight:800;color:#b0b8c1}
+.pain-t{font-size:19px;font-weight:700;margin:10px 0 8px;letter-spacing:-0.02em}
+.pain-d{font-size:15px;color:#4e5968;line-height:1.6;margin:0}
+.step-n{font-size:52px;font-weight:800;color:var(--accent);letter-spacing:-0.03em;line-height:1}
+.step-t{font-size:20px;font-weight:700;margin:16px 0 8px}
+.feat{padding:32px}
+.feat-tag{display:inline-block;font-size:12px;font-weight:800;color:#fff;background:var(--accent);padding:5px 10px;border-radius:8px;margin-bottom:14px}
+.feat-t{font-size:22px;font-weight:800;margin:0 0 10px;letter-spacing:-0.02em}
+.feat-d{font-size:15px;color:#4e5968;line-height:1.65;margin:0}
+.cmp{border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.crow{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;border-bottom:1px solid #f2f4f6}
+.crow>div{padding:16px 18px;font-size:15px}
+.crow-h{background:#f7f8fa;font-weight:700;font-size:14px;color:#6b7684}
+.c-this{background:var(--accent-soft);font-weight:700;color:var(--accent)}
+.c-lbl{font-weight:600;color:#333d4b}
+.c-etc{color:#6b7684}
+.faq{border-bottom:1px solid var(--line);padding:6px 0}
+.faq summary{cursor:pointer;font-size:18px;font-weight:700;padding:20px 0;list-style:none;display:flex;justify-content:space-between;align-items:center;letter-spacing:-0.01em}
+.faq summary::-webkit-details-marker{display:none}
+.faq-a{font-size:16px;color:#4e5968;line-height:1.7;padding:0 0 22px;margin:0}
+.chev{color:#b0b8c1;font-size:14px;transition:transform .2s}
+.faq[open] .chev{transform:rotate(180deg)}
+.disc{background:#fff8eb;border:1px solid #f5d9a8;border-radius:16px;padding:24px 28px;font-size:15px;line-height:1.7;color:#8a6116}
+.cta-sec{border-radius:28px;padding:72px 32px;text-align:center}
+.cta-light{background:var(--accent-soft)}
+.cta-sub{font-size:17px;color:#4e5968;margin:16px 0 32px;line-height:1.6}
+.price-tag{display:inline-block;font-size:15px;font-weight:800;letter-spacing:.04em;color:var(--accent);background:#fff;border:1px solid var(--line);padding:10px 18px;border-radius:999px;margin-bottom:24px}
+.hdr{position:sticky;top:0;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid #f2f4f6;z-index:10}
+.logo{font-size:19px;font-weight:800;letter-spacing:-0.02em;text-decoration:none;color:#191f28}
+.ftr{border-top:1px solid var(--line);padding:36px 0;font-size:13px;color:#8b95a1;line-height:1.7}
+@media(max-width:768px){.grid2,.grid3{grid-template-columns:1fr}.sec{padding:64px 0}.crow>div{padding:12px 10px;font-size:12.5px}.mrow{grid-template-columns:1.6fr 1fr 1fr 1fr;padding:11px 14px;font-size:12.5px}.btn{height:52px;padding:0 20px;font-size:15px;width:100%}.hero-cta{flex-direction:column}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="hdr"><div class="wrap fx ac jb" style="height:64px"><a href="#" class="logo">마진<span class="acc">시트</span></a><a href="#notify" class="btn btn-primary" style="height:42px;padding:0 18px;font-size:14px;border-radius:10px">출시 알림 받기</a></div></header>
+
+<section class="sec" style="padding-top:88px">
+<div class="wrap tc">
+<span class="badge">스마트스토어 셀러를 위한 구글시트</span>
+<h1 class="hero-h1 mt16">정산내역 붙여넣기만 하면,<br>실마진·부가세가 <span class="acc">끝.</span></h1>
+<p class="hero-sub">수수료율이 바뀌어도, 정산 파일 포맷이 바뀌어도 —<br>다시 안 만들어도 됩니다.</p>
+<div class="fx jc gap12 hero-cta" style="margin-top:36px"><a href="#notify" class="btn btn-primary">출시 알림 받기</a><a href="#preview" class="btn btn-ghost">미리보기</a></div>
+<div class="mock mt16" id="preview" style="margin-top:64px;text-align:left">
+<div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:6px">실마진 대시보드 — 예시 화면 (합성 데이터)</span></div>
+<div class="mrow mrow-h"><div>상품명</div><div class="mnum">매출</div><div class="mnum">수수료·반품</div><div class="mnum">실마진</div></div>
+<div class="mrow"><div>프리미엄 주방장갑 세트</div><div class="mnum num">4,820,000</div><div class="mnum num">-812,400</div><div class="mnum num gain">+1,214,600</div></div>
+<div class="mrow"><div>실리콘 밀폐용기 6P</div><div class="mnum num">3,150,000</div><div class="mnum num">-624,800</div><div class="mnum num gain">+688,200</div></div>
+<div class="mrow"><div>미니 캠핑 랜턴</div><div class="mnum num">1,940,000</div><div class="mnum num">-518,300</div><div class="mnum num loss">-86,300</div></div>
+<div class="mrow" style="border-bottom:none;background:#fafbfc"><div class="fw7">월 실마진 합계</div><div class="mnum num fw7">9,910,000</div><div class="mnum num fw7">-1,955,500</div><div class="mnum num gain fw8">+1,816,500</div></div>
+</div>
+<p style="font-size:12.5px;color:#8b95a1;margin-top:10px;text-align:right">실마진은 원가까지 반영해 계산됩니다 (표는 예시)</p>
+</div>
+</section>
+
+<section class="sec" style="background:#f7f8fa">
+<div class="wrap">
+<p class="eyebrow">이런 경험, 있으시죠</p>
+<h2 class="sec-title">팔수록 남는 것 같은데,<br>통장은 그대로인 이유</h2>
+<div class="grid2" style="margin-top:44px">
+<div class="card"><div class="pain-num">01</div><h3 class="pain-t">수수료·반품이 뒤섞여 순이익을 모른다</h3><p class="pain-d">정산내역엔 매출·수수료·반품·배송비가 한 줄에 섞여 있어, 상품별로 얼마가 남는지 끝까지 계산해 본 적이 없습니다.</p></div>
+<div class="card"><div class="pain-num">02</div><h3 class="pain-t">개편될 때마다 계산기를 다시 산다</h3><p class="pain-d">수수료 체계가 바뀌면 기존 엑셀 계산기는 그대로 무용지물. 매번 새 버전을 다시 구매하거나 직접 고쳐야 합니다.</p></div>
+<div class="card"><div class="pain-num">03</div><h3 class="pain-t">남의 엑셀은 열 순서가 달라 오류</h3><p class="pain-d">구매한 양식에 내 정산 파일을 붙여넣으면 열 순서가 맞지 않아 수식이 깨지고, 어디서 틀렸는지 찾느라 밤을 새웁니다.</p></div>
+<div class="card"><div class="pain-num">04</div><h3 class="pain-t">부가세는 결국 손계산</h3><p class="pain-d">신고 기간마다 매출·매입을 다시 뒤져 계산기를 두드립니다. 공급가액과 세액을 나누는 것부터가 일입니다.</p></div>
+</div>
+</div>
+</section>
+
+<section class="sec">
+<div class="wrap">
+<p class="eyebrow">사용법</p>
+<h2 class="sec-title">3번의 동작이면 충분합니다</h2>
+<div class="grid3" style="margin-top:44px">
+<div><div class="step-n num">1</div><h3 class="step-t">복사</h3><p class="pain-d">스마트스토어에서 내려받은 정산내역을 그대로 복사합니다.</p></div>
+<div><div class="step-n num">2</div><h3 class="step-t">붙여넣기</h3><p class="pain-d">시트의 '입력' 탭에 붙여넣습니다. 열 순서는 신경 쓰지 않아도 됩니다.</p></div>
+<div><div class="step-n num">3</div><h3 class="step-t">메뉴 클릭</h3><p class="pain-d">상단 메뉴 한 번 클릭. 상품별 실마진·부가세·월별 손익이 자동으로 채워집니다.</p></div>
+</div>
+</div>
+</section>
+
+<section class="sec" style="background:#f7f8fa">
+<div class="wrap">
+<p class="eyebrow">핵심 기능</p>
+<h2 class="sec-title">계산은 시트가,<br>판단은 사장님이</h2>
+<div class="grid2" style="margin-top:44px">
+<div class="card feat" style="grid-column:1/-1;background:var(--accent-soft);border-color:var(--accent)"><span class="feat-tag">대표 기능</span><h3 class="feat-t">동적 열 매핑 — 포맷이 바뀌어도 안 깨집니다</h3><p class="feat-d">열 위치가 아니라 열 이름을 읽어 자동으로 매핑합니다. 스마트스토어가 정산 파일 양식을 바꿔도, 열 순서가 달라도 그대로 붙여넣으면 됩니다. 다시 만들거나 다시 살 필요가 없습니다.</p></div>
+<div class="card feat"><h3 class="feat-t">실마진 자동계산</h3><p class="feat-d">수수료·반품·배송비·원가를 반영해 상품별 실마진과 마진율을 자동 산출합니다. '많이 팔린 상품'이 아니라 '남는 상품'이 보입니다.</p></div>
+<div class="card feat"><h3 class="feat-t">부가세 분리 <span class="sub" style="font-size:13px;font-weight:600">(참고용)</span></h3><p class="feat-d">매출을 공급가액과 부가세로 자동 분리해 신고 준비 시간을 줄여줍니다. 최종 수치는 세무사 확인을 권장합니다.</p></div>
+<div class="card feat" style="grid-column:1/-1"><h3 class="feat-t">월별 손익 대시보드 + 적자 랭킹</h3><p class="feat-d">월별 매출·비용·실마진 추이를 한 화면에서 확인하고, 팔수록 손해인 상품을 적자 순위로 보여줍니다. 가격 조정과 판매 중단 결정이 빨라집니다.</p></div>
+</div>
+</div>
+</section>
+
+<section class="sec">
+<div class="wrap">
+<p class="eyebrow">비교</p>
+<h2 class="sec-title">왜 이 시트인가</h2>
+<div class="cmp" style="margin-top:44px">
+<div class="crow crow-h"><div></div><div class="c-this" style="font-weight:800">마진시트</div><div>엑셀 마진계산기</div><div>주문제작 외주</div></div>
+<div class="crow"><div class="c-lbl">포맷 변경 대응</div><div class="c-this">자동 열 매핑</div><div class="c-etc">수식 깨짐</div><div class="c-etc">추가 비용 발생</div></div>
+<div class="crow"><div class="c-lbl">상품별 실마진</div><div class="c-this">자동 산출</div><div class="c-etc">수동 입력</div><div class="c-etc">사양에 따라 다름</div></div>
+<div class="crow"><div class="c-lbl">부가세 분리</div><div class="c-this">자동 (참고용)</div><div class="c-etc">별도 계산</div><div class="c-etc">별도 요청</div></div>
+<div class="crow"><div class="c-lbl">수수료 개편 시</div><div class="c-this">설정값만 수정</div><div class="c-etc">재구매</div><div class="c-etc">유지보수 계약</div></div>
+<div class="crow" style="border-bottom:none"><div class="c-lbl">도입 비용</div><div class="c-this">시트 1개 가격</div><div class="c-etc">버전마다 구매</div><div class="c-etc">수십만 원~</div></div>
+</div>
+</div>
+</section>
+
+<section class="sec" style="padding-bottom:48px">
+<div class="wrap" style="max-width:760px">
+<p class="eyebrow">자주 묻는 질문</p>
+<h2 class="sec-title" style="margin-bottom:24px">궁금하신 점</h2>
+<details class="faq"><summary>엑셀이 아니라 구글시트인가요?<span class="chev">▼</span></summary><p class="faq-a">네, 구글시트 기반입니다. 설치 없이 브라우저에서 바로 사용하고, PC·모바일 어디서든 열 수 있습니다. 구글 계정만 있으면 됩니다.</p></details>
+<details class="faq"><summary>정산 파일 양식이 바뀌면 어떻게 되나요?<span class="chev">▼</span></summary><p class="faq-a">열 이름을 기준으로 자동 매핑하기 때문에 열 순서가 바뀌거나 열이 추가돼도 그대로 동작하도록 설계했습니다.</p></details>
+<details class="faq"><summary>쿠팡 정산도 지원하나요?<span class="chev">▼</span></summary><p class="faq-a">현재는 스마트스토어 정산내역에 최적화되어 있습니다. 쿠팡 등 타 마켓은 확장 예정입니다. 출시 알림을 신청하시면 지원 소식을 가장 먼저 알려드립니다.</p></details>
+<details class="faq"><summary>부가세 신고에 그대로 써도 되나요?<span class="chev">▼</span></summary><p class="faq-a">부가세 분리 수치는 신고 준비를 돕는 참고용입니다. 실제 신고 전에는 반드시 세무사 또는 세무 전문가의 확인을 거치시기 바랍니다.</p></details>
+</div>
+</section>
+
+<section style="padding:0 0 64px">
+<div class="wrap" style="max-width:760px">
+<div class="disc"><strong>안내</strong> — 본 시트가 제공하는 부가세 수치는 참고용입니다. 실제 부가가치세 신고 전에는 반드시 세무사 등 전문가의 확인을 받으시기 바랍니다. 계산 결과에 대한 세무상 책임은 이용자에게 있습니다.</div>
+</div>
+</section>
+
+<section class="sec" style="padding-top:0" id="notify">
+<div class="wrap">
+<div class="cta-sec cta-light">
+<span class="price-tag">출시 특가 준비 중</span>
+<h2 class="sec-title">가장 먼저, 가장 좋은 조건으로<br>만나보세요</h2>
+<p class="cta-sub">출시 알림을 신청하시면 특가 소식과 미리보기 링크를 보내드립니다.</p>
+<a href="#" class="btn btn-primary" style="min-width:220px">출시 알림 신청하기</a>
+</div>
+</div>
+</section>
+
+<footer class="ftr"><div class="wrap">마진시트 · 스마트스토어 셀러를 위한 정산·실마진 자동계산 구글시트<br>부가세 관련 수치는 참고용이며, 신고 전 세무 전문가 확인이 필요합니다.</div></footer>
+</div>
+</body>
+</html>
